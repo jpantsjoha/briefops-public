@@ -135,6 +135,70 @@ Before
 After
 ![After BriefOps](images/News-feed-Channel-Summarised.png "After BriefOps")
 
+
+## Secure SDLC with GCP - You'd want to set this up on your own
+
+When developing and deploying applications in Google Cloud, it’s essential to follow a secure Software Development Lifecycle (SDLC). For BriefOps, using Google Cloud Build allows for the automated building, scanning, and deploying of Docker images in a secure and controlled environment.
+
+Here’s an example Cloud Build configuration that ensures secure practices throughout the deployment process:
+
+See the example `cloudbuild.yaml` file, as this is configured in my repo, to ensure my fresh-baked changeset are pushed right out to cloudRun, for testing.
+
+```
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/briefops:$COMMIT_SHA', '.']
+    id: 'Build Image'
+
+  # Step 2: Push the Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/briefops:$COMMIT_SHA']
+    id: 'Push Image'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE}'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/briefops:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-secrets'
+      - 'SLACK_APP_TOKEN=SLACK_APP_TOKEN:latest'
+      - '--set-secrets'
+      - 'SLACK_BOT_TOKEN=SLACK_BOT_TOKEN:latest'
+      - '--set-secrets'
+      - 'SLACK_SIGNING_SECRET=SLACK_SIGNING_SECRET:latest'
+      - '--service-account'
+      - 'briefops-service-account@briefops.iam.gserviceaccount.com'  
+    id: 'Deploy to Cloud Run'
+
+# Logging options set to CLOUD_LOGGING_ONLY
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE: briefops
+
+```
+
+Benefits of your own independent CICD Setup
+- Automated Build & Deploy: Ensures consistency in every release by automating the build and deployment steps.
+- Container Scanning: Integrating container scanning tools with Cloud Build helps detect vulnerabilities early in the SDLC process.
+- Secret Management: Sensitive information such as Slack Tokens is managed securely with Google Secret Manager, ensuring they are not exposed during builds or in source code.
+- IAM Policies: Cloud Build steps are executed using IAM service accounts with least privilege access, ensuring that only necessary permissions are granted.
+- Logging and Monitoring: Using Cloud Logging and Monitoring ensures that all actions within the build pipeline and the deployed application are tracked and auditable.
+
+(Use Cloud Logging to evaluate your own instance of this app as/when you add any more features)
+
 ## Security and Privacy Considerations
 
 BriefOps is designed with privacy and security in mind:
