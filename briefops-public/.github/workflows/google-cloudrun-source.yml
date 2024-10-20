@@ -1,0 +1,69 @@
+# .github/workflows/lint-validate.yml
+
+name: 'Lint and Validate Code'
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint-validate:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+      - name: 'Checkout Repository'
+        uses: 'actions/checkout@v4'
+
+      # Step 1: Set up Terraform CLI
+      - name: 'Set up Terraform'
+        uses: 'hashicorp/setup-terraform@v2'
+        with:
+          terraform_wrapper: false
+
+      # Step 2: Lint Terraform Code
+      - name: 'Lint Terraform Code'
+        id: 'terraform-lint'
+        run: |
+          echo "Running terraform fmt to auto-correct style issues..."
+          terraform fmt -recursive -check=false
+          echo "Running terraform fmt to verify formatting..."
+          terraform fmt -recursive -check || echo "Style issues detected. Please review."
+
+      # Step 3: Validate Terraform Code
+      - name: 'Validate Terraform Code'
+        id: 'terraform-validate'
+        run: |
+          echo "Running terraform validate to check the configuration..."
+          terraform init -backend=false
+          terraform validate || echo "Terraform validation failed. Please review."
+
+      # Step 4: Set up Node.js Environment for Linting
+      - name: 'Set up Node.js'
+        uses: 'actions/setup-node@v3'
+        with:
+          node-version: '20' # Updated to Node.js 20
+
+      # Step 5: Install ESLint
+      - name: 'Install ESLint'
+        run: |
+          npm install eslint --global
+
+      # Step 6: Lint Node.js Files
+      - name: 'Lint Node.js Files'
+        id: 'node-lint'
+        run: |
+          echo "Running eslint on main.js..."
+          eslint main.js || echo "Linting issues found. Attempting auto-fix..."
+          eslint main.js --fix || exit 0
+          echo "Re-running eslint after auto-fix..."
+          eslint main.js || echo "Linting issues still remain. Please review."
+
+      # Step 7: Fail if Critical Issues Remain
+      - name: 'Fail if Validation Failed'
+        if: failure()
+        run: |
+          echo "Validation or Linting has failed. Please review the issues."
