@@ -1,3 +1,4 @@
+# You would want to use this in your GCP CloudBuild, aid with image building, scanning and release of any further customisations
 steps:
   # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
