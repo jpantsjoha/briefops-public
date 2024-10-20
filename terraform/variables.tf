@@ -67,5 +67,5 @@ variable "SLACK_APP_TOKEN_value" {
 variable "github_repository" {
   description = "github_repository referencen"
   type        = string
-  default     = "https://github.com/LVSP-io/briefops"
+  default     = "https://github.com/jpantsjoha/briefops-public"
 }
