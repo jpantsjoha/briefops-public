@@ -2,6 +2,16 @@
 
 **BriefOps** is a Slack app that helps teams stay on top of important conversations by summarising Slack channels over specific periods. Built on **Google Cloud**, it leverages **Vertex AI** for summarisation, offering a fully secure, private deployment in your own Google Cloud environment.
 
+## Published Blog
+
+The actualy hands-on Experience writing up this App/Integration is published on the [Google Cloud Medium Publication here.](https://medium.com/google-cloud/slack-googlecloud-briefops-streamlining-slack-comms-with-gcp-ai-powered-summarisation-ec2151672731)
+
+![BriefOps is powered by Google Cloud](images/medium_bannerimage_blogpost.png "Slack+GCP_Vertex_AI powers BriefOps")
+ 
+# About BriefOps
+
+It's A Slack Channel Summarisation App, hosted on Google Cloud, uses Gemini generative AI/LLM to summarise long Channel Conversaions (and uploaded Documents - due shortly)
+
 `This is Beta1 Release: Slack Channel Summarisation capability only`
 
 ![About BriefOps](images/about-briefops-slack-app.png "About BriefOps")
