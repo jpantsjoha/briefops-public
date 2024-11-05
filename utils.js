@@ -1,8 +1,56 @@
 // utils.js
-
+const path = require('path');
 const axios = require('axios');
 const { VERTEX_AI_MODEL, VERTEX_AI_LOCATION } = require('./config');
 const { VertexAI } = require('@google-cloud/vertexai');
+const { Storage } = require('@google-cloud/storage');
+
+// Initialize Google Cloud Storage
+const storage = new Storage();
+const bucketName = process.env.GCS_BUCKET_NAME; // Ensure your bucket name is set in environment variables
+
+/**
+ * Upload a file to Google Cloud Storage
+ * @param {Buffer} fileContent - The file content as a Buffer
+ * @param {string} fileName - The name of the file to upload
+ * @returns {string} - Returns the file URI (gs://bucket_name/file_name)
+ */
+async function uploadToGCS(fileContent, fileName) {
+  const filePath = path.join('uploads', fileName); // Customize the file path if necessary
+
+  try {
+    const file = storage.bucket(bucketName).file(filePath);
+    await file.save(fileContent);
+    console.log(`[INFO] File uploaded to GCS: ${filePath}`);
+    return `gs://${bucketName}/${filePath}`;
+  } catch (error) {
+    console.error(`[ERROR] Failed to upload file to GCS: ${error.message}`);
+    throw new Error('Failed to upload file to Google Cloud Storage.');
+  }
+}
+
+/**
+ * Download a file from Slack
+ * @param {string} url - The private URL of the file to download
+ * @param {string} mimeType - The MIME type of the file being downloaded
+ * @returns {Promise<Buffer>} - Returns the file content in a Buffer
+ */
+async function downloadFile(url, mimeType) {
+  try {
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      headers: {
+        Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}`,
+        'Content-Type': mimeType,
+      },
+    });
+    return Buffer.from(response.data); // Return file content as a Buffer
+  } catch (error) {
+    console.error(`[ERROR] Error downloading file from Slack: ${error.message}`);
+    throw new Error('Failed to download the file from Slack.');
+  }
+}
+
 
 /**
  * Download a file from Slack
@@ -82,4 +130,6 @@ async function summarizeDocument(fileContent) {
 module.exports = {
   downloadFile,
   summarizeDocument,
+  uploadToGCS,
+  downloadFile,
 };

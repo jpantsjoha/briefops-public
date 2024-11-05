@@ -1,6 +1,6 @@
 # BriefOps
 
-**BriefOps** is a Slack app that helps teams stay on top of important conversations by summarising Slack channels over specific periods. Built on **Google Cloud**, it leverages **Vertex AI** for summarisation, offering a fully secure, private deployment in your own Google Cloud environment.
+**BriefOps** is a Slack app that helps teams stay on top of important conversations by summarising Slack Uploaded Documents, and Slack channels over specific periods,. Built on **Google Cloud**, it leverages **Vertex AI** for summarisation, offering a fully secure, private deployment in your own Google Cloud environment.
 
 ## Published Blog
 
@@ -12,15 +12,18 @@ The actualy hands-on Experience writing up this App/Integration is published on 
 
 It's A Slack Channel Summarisation App, hosted on Google Cloud, uses Gemini generative AI/LLM to summarise long Channel Conversaions (and uploaded Documents - due shortly)
 
-`This is Beta1 Release: Slack Channel Summarisation capability only`
+`November 2024: This is Beta2 Release: Slack Channel, and Uploaded PDF Document Summarisation capabilities.`
 
-![About BriefOps](images/about-briefops-slack-app.png "About BriefOps")
+![About BriefOps](images/About_BriefOps_App.png "About BriefOps")
 
 ## Features
 
 - **Channel Summarisation**: Use `/briefops` to summarise conversations over a set period, helping users catch up on important updates. _(default over last 7 days)_
 - **Secure and Private**: Fully deployed within your own Google Cloud project, ensuring enterprise-level privacy and security.
 - **Customisable Deployments**: Choose the Google Cloud region and adjust configurations to meet your operational needs.
+- **Expanding Functionality:** Moving beyond Slack conversations, BriefOps can now handle internal documents with ``/briefops-ingest <slack_file>`, making it a more versatile tool for information management.
+- **Improving User Experience:** By providing status updates with `/briefops-status` and usage information, you can better manage your interactions with the service, leading to increased satisfaction.
+- **Driving Efficiency:** Summarizing external content and providing usage insights helps teams work more efficiently, focusing on critical information and optimizing resource use.
 
 ## Getting Started
 
@@ -36,15 +39,77 @@ Before starting, ensure you have the following:
 
 ![BriefOps Solution HLD](images/architecture-HLD.png "BriefOps Solution HLD C4")
 
-
 This user-centric view better shows how Slack commands directly lead to Google Cloud components interacting and how the Slack User remains the main stakeholder throughout the summarisation process. This also emphasises privacy and clarity, indicating where processing occurs and how responses come back to the initiating user or thread.
 
 
+## How this Works - Usage
 
+
+### `/briefops`
+
+
+- **Channel Summarisation**: The `/briefops` command is a powerful tool for teams, enabling the summarisation of entire Slack channel conversations over a configurable period. This is ideal for large teams and busy channels where members may miss critical updates or need a quick recap.
+  - **Default Time Frame**: By default, `/briefops` summarises the last 7 days, making it easy to catch up on a week's worth of discussions.
+  - **Custom Time Frame**: Users can specify a custom time frame by entering the desired number of days (e.g., `/briefops 14` for the last 14 days), allowing for targeted summarisation.
+  - **Summarisation with Contextual Insights**: The command leverages Vertex AI's latest Gemini models, which provide contextually rich and concise summaries, capturing essential points and highlighting key takeaways.
+  - **Automated Thread Management**: Summaries are automatically posted back into the channel, creating a single-threaded history of key points that team members can reference. This helps reduce the time spent manually scanning or summarising long conversations and increases productivity.
+  - **Enhanced Meeting and Project Workflow**: Teams can use `/briefops` to summarise critical meetings, project updates, or collaborative discussions, creating a concise record for all members to review and act on.
+
+The Example of Summarisation of the Channel, along with Document summaries:
+
+![BriefOps Channel Summary](images/briefops-summarisation-of-ingests.png "BriefOps summary of channel with other summaries")
+
+### `/briefops-ingest`
+
+The `/briefops-ingest` command allows users to ingest external documents or data sources into the BriefOps system for summarization and analysis. This feature extends BriefOps beyond summarizing Slack conversations to include external content, making it a powerful tool for aggregating and summarizing information from multiple sources.
+
+![BriefOps Ingest](images/briefops-ingest-command.png "BriefOps Ingest Document to summarise")
+
+**Usage:**
+
+```/briefops-ingest <Slack file URL>```
+
+**What It Does:**
+
+- Accepts a URL or file as input.
+- Fetches and processes the content securely.
+- Summarizes the content using the same Vertex AI models used for Slack conversations.
+- Provides a concise summary directly within Slack.
+
+
+### `/briefops-status`
+
+The `/briefops-status` command provides users with information about their usage and the status of the BriefOps service. This includes details such as the number of summaries used, remaining daily limits, and any relevant notifications regarding service availability.
+
+![BriefOps Status](images/briefops-status-command.png "BriefOps Status with ingested file stats")
+
+
+**Usage:**
+
+```/briefops-status```
+
+
+**What It Does:**
+
+- Displays your current usage statistics, including:
+  - Number of summaries generated today.
+  - Remaining summaries available under the free tier limit.
+- Provides information about any service updates or maintenance notices.
+- Helps you manage your usage and stay within your allocated limits.
+
+
+## Deploy /BriefOps Application on Slack with Google Cloud
+
+### Step 0: Create your Slack App
+
+Follow the Slack's very own onboarding guide here https://api.slack.com/docs/apps
+
+You'd need all your Slack Bot and App keys and Secrets kept safely to deploy this app.
 
 ### Step 1: Enable Required Google Cloud APIs
 
-export GOOGLE_CLOUD_PROJECT="Your-ProjectID"
+`export GOOGLE_CLOUD_PROJECT="Your-ProjectID"`
+
 Run the following command to enable all necessary Google Cloud services:
 
 ```bash

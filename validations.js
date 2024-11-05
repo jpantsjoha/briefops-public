@@ -2,6 +2,7 @@ const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const https = require('https');
 const { WebClient } = require('@slack/web-api');
 const { LOG_LEVEL } = require('./config');
+const db = require('./firebaseClient'); // Ensure this points to your Firestore initialization
 
 // Function to fetch secret values from Secret Manager
 async function getSecret(secretName) {
@@ -70,8 +71,10 @@ async function testSlackApi() {
     const webClient = new WebClient(process.env.SLACK_BOT_TOKEN);
     const response = await webClient.apiCall('api.test');
     console.log('Slack API Test Response:', response);
+    return response.ok;
   } catch (error) {
     console.error('Slack API Test Error:', error);
+    return false;
   }
 }
 
@@ -95,9 +98,69 @@ function retrySocketConnection(socketModeClient, retryCount = 0) {
   });
 }
 
+// Function to handle the /briefops-status command
+async function handleStatusCommand({ command, ack, respond }) {
+  try {
+    // Acknowledge the command
+    await ack();
+
+    console.log(
+      `[INFO] Processing /briefops-status for user: ${command.user_name}`
+    );
+
+    // Fetch document ingestion stats from Firestore
+    const documentsSnapshot = await db
+      .collection('ingestedFiles') // Corrected collection name
+      .orderBy('createdAt') // Ensure documents are ordered by creation time
+      .get();
+
+    const documentCount = documentsSnapshot.size;
+    let lastDocument = 'None';
+
+    if (documentCount > 0) {
+      const lastDocData = documentsSnapshot.docs[documentCount - 1].data();
+      lastDocument = lastDocData.fileName || 'Unknown'; // Corrected field name
+    }
+
+    // Test Slack connectivity
+    const slackApiStatus = await testSlackApi();
+    const slackApiMessage = slackApiStatus ? 'OK' : 'Failed';
+
+    // Test network access
+    const networkAccessStatus = await testNetworkAccess();
+    const networkAccessMessage = networkAccessStatus ? 'OK' : 'Failed';
+
+    // Construct a status report
+    const statusMessage = `
+*BriefOps Status:*
+- Number of documents ingested: ${documentCount}
+- Last ingested document: ${lastDocument}
+- Slack API: ${slackApiMessage}
+- Network access: ${networkAccessMessage}
+    `;
+
+    // Respond with the status message in the Slack channel
+    await respond({
+      text: statusMessage,
+      response_type: 'in_channel',
+    });
+
+    console.log('[INFO] Status report sent successfully.');
+  } catch (error) {
+    console.error(
+      `[ERROR] Error in /briefops-status handler: ${error.message}`
+    );
+    await respond({
+      text: `An error occurred while processing the status: ${error.message}`,
+      response_type: 'ephemeral',
+    });
+  }
+}
+
 module.exports = {
   validateSecrets,
   testNetworkAccess,
   testSlackApi,
   retrySocketConnection,
+  handleStatusCommand,
 };

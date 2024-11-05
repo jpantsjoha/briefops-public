@@ -23,7 +23,7 @@ module.exports = {
 
   SUMMARIZATION_MAX_OUTPUT_TOKENS: process.env.SUMMARIZATION_MAX_OUTPUT_TOKENS
     ? parseInt(process.env.SUMMARIZATION_MAX_OUTPUT_TOKENS)
-    : 256, // Default max output tokens
+    : 1000, // Default max output tokens
 
   SUMMARIZATION_TOP_P: process.env.SUMMARIZATION_TOP_P
     ? parseFloat(process.env.SUMMARIZATION_TOP_P)

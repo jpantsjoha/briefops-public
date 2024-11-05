@@ -7,6 +7,8 @@ const https = require('https');
 const axios = require('axios');
 const validations = require('./validations');
 const summarization = require('./summarization');
+const fsSummary = require('./fs-summary'); // Import the fs-summary.js module
+
 
 // Set a global axios default timeout
 axios.defaults.timeout = 15000; // 15 seconds
@@ -38,6 +40,8 @@ validations.validateSecrets().then(() => {
     console.log('Slack App initialized successfully.');
   } catch (error) {
     console.error('Error initializing Slack App:', error);
+    console.error('Please ensure that all necessary environment variables are set correctly and valid.');
+    console.error('Check SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, and SLACK_APP_TOKEN in your environment.');
     process.exit(1); // Exit if the initialization fails
   }
 
@@ -62,6 +66,7 @@ validations.validateSecrets().then(() => {
 
   socketModeClient.on('error', (error) => {
     console.error('Socket Mode connection error:', error);
+    console.error('Check your network connectivity and ensure that the SLACK_APP_TOKEN is correct.');
   });
 
   validations.retrySocketConnection(socketModeClient); // Add retry logic for socket connection
@@ -70,37 +75,65 @@ validations.validateSecrets().then(() => {
   console.log('Initializing modules...');
   try {
     summarization(app);
+    fsSummary(app);  // Initialize the fs-summary module
+
     console.log('Modules loaded successfully.');
   } catch (error) {
     console.error('Error loading modules:', error);
+    console.error('Please check if all required modules are properly configured and available.');
     process.exit(1); // Exit if modules fail to load
   }
 
-  // Add slash command listener for /briefops
-  app.command('/briefops', async ({ command, ack, respond }) => {
-    console.log(`Received /briefops command from user: ${command.user_name}, text: ${command.text}`);
-    try {
-      console.log('Acknowledging /briefops command...');
-      await ack(); // Acknowledge the command promptly
-      console.log('Acknowledged /briefops command successfully.');
+  // Adjusted fetchChannelMessages to handle 'not_in_channel' error
+async function fetchChannelMessages(channelId) {
+  try {
+    const result = await app.client.conversations.history({
+      token: process.env.SLACK_BOT_TOKEN,
+      channel: channelId,
+    });
 
-      // Add a small delay to simulate processing time and ensure acknowledgement is separated
-      setTimeout(async () => {
-        try {
-          console.log('Responding to /briefops command...');
-          await respond({ text: `Processing your request: ${command.text}` });
-          console.log('/briefops command processed and responded successfully.');
-        } catch (responseError) {
-          console.error('Error responding to /briefops command:', responseError);
-          await respond({ text: 'An error occurred while processing your request.' });
-        }
-      }, 10); // Delay of 10 milliseconds to avoid blocking ack()
+    return result.messages;
+  } catch (error) {
+    console.error('Error fetching channel messages:', error);
 
-    } catch (error) {
-      console.error('Error handling /briefops command:', error);
-      await respond({ text: 'An error occurred while processing your request.' });
+    // Check for the specific 'not_in_channel' error
+    if (error.data?.error === 'not_in_channel') {
+      throw new Error(
+        `It looks like the bot is not in the channel. Please invite the bot to the channel by typing: \`/invite @briefops\`.`
+      );
     }
-  });
+
+    // Handle other errors as a general fallback
+    throw new Error('Failed to fetch messages due to an unexpected error.');
+  }
+}
+
+// Slash command listener with enhanced error message
+app.command('/briefops', async ({ command, ack, respond }) => {
+  console.log(`Received /briefops command from user: ${command.user_name}, text: ${command.text}`);
+  try {
+    await ack(); // Acknowledge the command
+
+    console.log('Fetching channel messages...');
+    const messages = await fetchChannelMessages(command.channel_id); // Assuming you're using the channel_id from the command
+
+    console.log('Messages fetched successfully.');
+    await respond({ text: `Messages fetched successfully. Processing your request: ${command.text}` });
+
+    // Proceed with summarization or other logic
+    // ...
+
+  } catch (error) {
+    console.error('Error handling /briefops command:', error.message);
+
+    // Respond to the user with the improved error message
+    await respond({ text: error.message });
+  }
+});
+
+app.command('/briefops-status', async ({ command, ack, respond }) => {
+  await validations.handleStatusCommand({ command, ack, respond });
+});
 
   // Start the app
   (async () => {
@@ -117,7 +150,7 @@ validations.validateSecrets().then(() => {
 
       server.on('error', (err) => {
         if (err.code === 'EADDRINUSE') {
-          console.error(`Port ${port} is already in use.`);
+          console.error(`Port ${port} is already in use. Please choose a different port or stop the conflicting service.`);
           process.exit(1);
         } else {
           console.error('Server error:', err);
@@ -134,6 +167,7 @@ validations.validateSecrets().then(() => {
       console.log(`⚡️ BriefOps app is running on port ${port}!`);
     } catch (error) {
       console.error(`Error starting the app on port ${port}:`, error);
+      console.error('Please check if the port is available and that all necessary environment variables are set.');
       process.exit(1);
     }
   })();
@@ -143,6 +177,7 @@ validations.validateSecrets().then(() => {
   validations.testSlackApi();
 }).catch((error) => {
   console.error('Failed to validate secrets or initialize the app:', error);
+  console.error('Please ensure all secrets are correctly configured in Google Secret Manager or environment variables.');
   process.exit(1);
 });
 
