@@ -23,8 +23,10 @@ Here are the commands you can use to get started:
 
 1. \`/briefops [days]\` - Summarize channel conversations from the last [days] days (default: 7 days).
 2. \`/briefops-status\` - Check the app's status and usage limits.
+3. \`/briefops-ingest [SLACK-PDF][YOUTUBE_VID_URL] \` - This will summarise the content of the media and \`--public\`to share such summary with the channel
+4. \`/briefops-search\` - Private Google Search. Use \`--summarise\` to summarise search result sources and \`--public\`to share such summary with the channel.
 
-To learn more, type \`@BriefOps help\`.
+PS: In the future you'd be able to chat with \`@BriefOps\`!
 Happy summarizing! 🚀
     `;
 
