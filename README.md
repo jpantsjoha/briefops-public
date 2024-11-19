@@ -1,29 +1,34 @@
 # BriefOps
 
-**BriefOps** is a Slack app that helps teams stay on top of important conversations by summarising Slack Uploaded Documents, and Slack channels over specific periods,. Built on **Google Cloud**, it leverages **Vertex AI** for summarisation, offering a fully secure, private deployment in your own Google Cloud environment.
+**BriefOps** is a Slack app that helps teams stay on top of important conversations by summarizing Slack channels, documents, and YouTube videos. Built on **Google Cloud**, it leverages **Vertex AI** for summarization and integrates **Dialogflow CX** for enhanced conversational interactions, offering a fully secure, private deployment in your own Google Cloud environment.
+
+## Current Release: Beta3`
+ 
+### Added the Following Features:
+
+ - `Channel Summarization`, 
+ - `Document (formatting upgrade)` and 
+ - `Youtube Video Ingestion and summarisation` 
+ - `initial Dialogflow CX Integration`
+ - `Google Search` and `Google Search Summarisation of Source Results`
+
+
+<img src="images/about-briefops.png" width=550px>
 
 ## Published Blog
 
 The actualy hands-on Experience writing up this App/Integration is published on the [Google Cloud Medium Publication here.](https://medium.com/google-cloud/slack-googlecloud-briefops-streamlining-slack-comms-with-gcp-ai-powered-summarisation-ec2151672731)
 
-![BriefOps is powered by Google Cloud](images/medium_bannerimage_blogpost.png "Slack+GCP_Vertex_AI powers BriefOps")
- 
-# About BriefOps
-
-It's A Slack Channel Summarisation App, hosted on Google Cloud, uses Gemini generative AI/LLM to summarise long Channel Conversaions (and uploaded Documents - due shortly)
-
-`November 2024: This is Beta2 Release: Slack Channel, and Uploaded PDF Document Summarisation capabilities.`
-
-![About BriefOps](images/About_BriefOps_App.png "About BriefOps")
 
 ## Features
 
-- **Channel Summarisation**: Use `/briefops` to summarise conversations over a set period, helping users catch up on important updates. _(default over last 7 days)_
+- **Channel Summarization**: Use `/briefops [days]` to summarize conversations over a set period, helping users catch up on important updates. _(Default: last 7 days)_
+- **Document and Video Ingestion**: Use `/briefops-ingest [file URL or YouTube link]` to ingest and summarize documents and YouTube videos, providing concise summaries and key takeaways.
+- **Dialogflow CX Integration**: An integrated Dialogflow CX agent acts as an assistant for future conversations, enhancing user interactions within Slack.
+- **Grounding Content**: Uploaded files and YouTube content can be flagged with `--grounding` and are stored securely in your Google Cloud Storage bucket for future reference.
 - **Secure and Private**: Fully deployed within your own Google Cloud project, ensuring enterprise-level privacy and security.
-- **Customisable Deployments**: Choose the Google Cloud region and adjust configurations to meet your operational needs.
-- **Expanding Functionality:** Moving beyond Slack conversations, BriefOps can now handle internal documents with ``/briefops-ingest <slack_file>`, making it a more versatile tool for information management.
-- **Improving User Experience:** By providing status updates with `/briefops-status` and usage information, you can better manage your interactions with the service, leading to increased satisfaction.
-- **Driving Efficiency:** Summarizing external content and providing usage insights helps teams work more efficiently, focusing on critical information and optimizing resource use.
+- **Customizable Deployments**: Choose the Google Cloud region and adjust configurations to meet your operational needs.
+- **Search and Summarise Web**: Capability to google search and flag `--summarise` to sumamrise top search results in a single report.
 
 ## Getting Started
 
@@ -34,112 +39,63 @@ Before starting, ensure you have the following:
 - A **Google Cloud project** with billing enabled.
 - A **Slack workspace** where you have permission to install apps.
 - **Terraform** installed to provision Google Cloud resources.
+- **gcloud CLI** installed and authenticated.
 
-## User-Centric Journey Architecture (Here is your HLD/C4 if you wondered)
+## Architecture Overview
+<img src="images/architecture-HLD.png" width=850px>
 
-![BriefOps Solution HLD](images/architecture-HLD.png "BriefOps Solution HLD C4")
+mages/summarise-example.png
 
-This user-centric view better shows how Slack commands directly lead to Google Cloud components interacting and how the Slack User remains the main stakeholder throughout the summarisation process. This also emphasises privacy and clarity, indicating where processing occurs and how responses come back to the initiating user or thread.
-
-
-## How this Works - Usage
-
-
-### `/briefops`
-
-
-- **Channel Summarisation**: The `/briefops` command is a powerful tool for teams, enabling the summarisation of entire Slack channel conversations over a configurable period. This is ideal for large teams and busy channels where members may miss critical updates or need a quick recap.
-  - **Default Time Frame**: By default, `/briefops` summarises the last 7 days, making it easy to catch up on a week's worth of discussions.
-  - **Custom Time Frame**: Users can specify a custom time frame by entering the desired number of days (e.g., `/briefops 14` for the last 14 days), allowing for targeted summarisation.
-  - **Summarisation with Contextual Insights**: The command leverages Vertex AI's latest Gemini models, which provide contextually rich and concise summaries, capturing essential points and highlighting key takeaways.
-  - **Automated Thread Management**: Summaries are automatically posted back into the channel, creating a single-threaded history of key points that team members can reference. This helps reduce the time spent manually scanning or summarising long conversations and increases productivity.
-  - **Enhanced Meeting and Project Workflow**: Teams can use `/briefops` to summarise critical meetings, project updates, or collaborative discussions, creating a concise record for all members to review and act on.
-
-The Example of Summarisation of the Channel, along with Document summaries:
-
-![BriefOps Channel Summary](images/briefops-summarisation-of-ingests.png "BriefOps summary of channel with other summaries")
-
-### `/briefops-ingest`
-
-The `/briefops-ingest` command allows users to ingest external documents or data sources into the BriefOps system for summarization and analysis. This feature extends BriefOps beyond summarizing Slack conversations to include external content, making it a powerful tool for aggregating and summarizing information from multiple sources.
-
-![BriefOps Ingest](images/briefops-ingest-command.png "BriefOps Ingest Document to summarise")
-
-**Usage:**
-
-```/briefops-ingest <Slack file URL>```
-
-**What It Does:**
-
-- Accepts a URL or file as input.
-- Fetches and processes the content securely.
-- Summarizes the content using the same Vertex AI models used for Slack conversations.
-- Provides a concise summary directly within Slack.
-
-
-### `/briefops-status`
-
-The `/briefops-status` command provides users with information about their usage and the status of the BriefOps service. This includes details such as the number of summaries used, remaining daily limits, and any relevant notifications regarding service availability.
-
-![BriefOps Status](images/briefops-status-command.png "BriefOps Status with ingested file stats")
-
-
-**Usage:**
-
-```/briefops-status```
-
-
-**What It Does:**
-
-- Displays your current usage statistics, including:
-  - Number of summaries generated today.
-  - Remaining summaries available under the free tier limit.
-- Provides information about any service updates or maintenance notices.
-- Helps you manage your usage and stay within your allocated limits.
-
-
-## Deploy /BriefOps Application on Slack with Google Cloud
-
-### Step 0: Create your Slack App
-
-Follow the Slack's very own onboarding guide here https://api.slack.com/docs/apps
-
-You'd need all your Slack Bot and App keys and Secrets kept safely to deploy this app.
+This architecture showcases how Slack commands directly interact with Google Cloud components. The Slack user remains at the core of the summarization process, ensuring privacy and clarity by indicating where processing occurs and how responses are delivered back to the user.
 
 ### Step 1: Enable Required Google Cloud APIs
 
-`export GOOGLE_CLOUD_PROJECT="Your-ProjectID"`
+Set your Google Cloud project ID:
+
+```bash
+export GOOGLE_CLOUD_PROJECT="your-project-id"
 
 Run the following command to enable all necessary Google Cloud services:
 
-```bash
 gcloud services enable \
-  firestore.googleapis.com \
   aiplatform.googleapis.com \
-  secretmanager.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com \
+  cloudfunctions.googleapis.com \
+  cloudresourcemanager.googleapis.com \
+  compute.googleapis.com \
+  containerregistry.googleapis.com \
+  dialogflow.googleapis.com \
+  firestore.googleapis.com \
+  iam.googleapis.com \
+  iamcredentials.googleapis.com \
   logging.googleapis.com \
   monitoring.googleapis.com \
   run.googleapis.com \
-  cloudbuild.googleapis.com \
+  secretmanager.googleapis.com \
+  storage.googleapis.com \
   --project=$GOOGLE_CLOUD_PROJECT
-```
+  ```
 
 ### Step 2: Clone the Repository
-Clone the public BriefOps repository:
 
+Clone the BriefOps repository:
 ```
 git clone https://github.com/YOUR_USERNAME/briefops-public.git
 cd briefops-public
 ```
 
-### Step 3: Configure Additional Environment Variables
+### Step 3: Configure Environment Variables
+
 Ensure that you have the necessary environment variables for your Google Cloud project and Slack tokens. These values will be set in Google Secret Manager via Terraform.
 
-In your terraform.tfvars, provide the following values:
+Create a terraform.tfvars file and provide the following values:
 
 ```
+# terraform.tfvars
+
 # Terraform variables
-project_id           = "your-google-cloud-project-id" #Change this to $GOOGLE_CLOUD_PROJECT
+project_id           = "your-google-cloud-project-id" # Change this to $GOOGLE_CLOUD_PROJECT
 region               = "us-central1"  # Change to your preferred region
 service_account_name = "briefops-service-account"
 app_name             = "briefops"
@@ -147,14 +103,14 @@ container_image      = "gcr.io/your-google-cloud-project-id/briefops:latest"
 memory               = "2Gi"
 max_instances        = 5
 
-# For bootstrap-only.
-# Slack tokens (replace these with your own Slack app credentials on Cloud Secrets instead)
-SLACK_APP_TOKEN      = "Replace-on-Google-Cloud-Secrets-with-your-app-token"
-SLACK_BOT_TOKEN      = "Replace-on-Google-Cloud-Secrets-bot-token"
-SLACK_SIGNING_SECRET = "Replace-on-Google-Cloud-Secrets-signing-secret"
+# Slack tokens (these will be stored in Secret Manager)
+SLACK_APP_TOKEN      = "your-slack-app-token"
+SLACK_BOT_TOKEN      = "your-slack-bot-token"
+SLACK_SIGNING_SECRET = "your-slack-signing-secret"
 ```
 
 ### Step 4: Deploy with Terraform
+
 To deploy BriefOps on Google Cloud using Terraform, navigate to the root of the project directory and run:
 
 ```
@@ -162,63 +118,148 @@ terraform init
 terraform apply
 ```
 
+
 This will provision the following Google Cloud resources:
-
 - Cloud Run to run the app.
-- Vertex AI for model inference and summarisation tasks.
+- Vertex AI for model inference and summarization tasks.
+- Dialogflow CX agent for conversational interactions.
 - Secret Manager to securely store Slack tokens.
-- Firestore for usage data storage. (TBD)
-
+- Firestore for data storage.
+- Cloud Storage bucket for storing ingested content.
 
 ### Step 5: Install the App in Slack
 
-Go to the Slack API website and create a new app for your workspace.
-Set up the OAuth tokens and install the app to your workspace.
-Copy the Slack Bot Token, App Token, and Signing Secret to your Terraform variables (terraform.tfvars).
+  1.	Create a New Slack App: Go to the Slack API website and create a new app for your workspace. 
+  2.	Set Up OAuth Tokens: Configure the OAuth scopes as specified below.
+  3.	Install the App: Install the app to your workspace.
+  4.	Update Secrets: Copy the Slack Bot Token, App Token, and Signing Secret to your Terraform variables (terraform.tfvars) or directly into Secret Manager.
 
+  Required OAuth Scopes
 
-To enable the /briefops command functionality, a minimal set of `Slack OAuth scopes` is required to ensure the command can be processed properly and the bot can respond to user requests within Slack. These scopes are specifically focused on allowing the bot to read necessary messages and send summarised responses based on user input. Below is a list of the essential scopes required for the /briefops command:
-
-Required Scopes for /briefops Command:
-
-- `commands` - To register and listen for /briefops.
-- `channels:read` - To read channel metadata and check availability.
-- `channels:history` - To read messages from public channels for summarisation.
-- `chat:write` - To send the summary response back to the user in the channel.
-- `conversations:read` - To get metadata about conversations the bot can access.
+To enable all functionalities, the following Slack OAuth scopes are required:
+- `app_mentions:rea`d - To read messages that mention the bot.
+- `commands` - To register and listen for slash commands.
+- `channels:read` - To read channel metadata.
+- `channels:history` - To read messages from public channels.
+- `chat:write` - To send messages and summaries back to channels.
+- `conversations:read` - To access metadata about conversations.
 - `conversations:history` - To read messages in private channels or threads.
+- `files:read` - To download files shared in Slack.
+- `groups:read` - To read private channel (group) metadata.
+- `im:history` - To read direct messages.
+- `im:write` - To send direct messages to users.
 
-Optional Scopes (Depending on Usage)
-- `groups:read` and groups:history - These are optional but needed if /briefops is expected to work in private channels.
-- `im:history` and `im:write` - These are necessary if you intend to allow the bot to respond to direct messages or if /briefops will be used in DMs.
 
 ## Usage
 
-Once the deployment is complete and the app is installed, you can start using /briefops in your Slack workspace to summarise conversations in any channel:
+### Summarize Channel Conversations
 
+Use the `/briefops` command to summarize conversations in the current channel over a specified number of days:
 
 ```
 /briefops [days]
-For example, /briefops 7 will summarise the last 7 days of messages in the current channel.
+```
+Example: `/briefops 7`
+<img src="images/summarise-example.png" width=450px>
+
+
+This will summarize the last 7 days of messages in the current channel.
+
+### Ingest and Summarize Documents and Videos
+
+Use the `/briefops-ingest` command to ingest and summarize documents or YouTube videos:
+
+```
+/briefops-ingest [file URL or YouTube link]
+```
+Examples: 
+
+- YouTube Video: `/briefops-ingest https://www.youtube.com/watch?v=VIDEO_ID`
+
+
+<img src="images/yt-summarise.png" width=450px>
+
+
+- Slack File URL:  `/briefops-ingest https://files.slack.com/files-pri/TXXXXXXX-FXXXXXXX/your_document.pdf`
+
+
+<img src="images/pdf-summarised.png" width=450px>
+
+
+*Upcoming capability* 
+The content will be uploaded to Google Cloud Storage with a `--grounding` flag for Dialogflow CX AI Agent grounding, for future conversaation reference. 
+This work is in progress `(19th Nov 2024)`
+
+### Interact with the Dialogflow CX Agent
+
+Mention the bot in a channel or send a direct message to interact with the integrated Dialogflow CX agent:
+`@BriefOps Hello!`
+
+The agent will respond based on the intents and flows configured in Dialogflow CX. This is WIP.
+
+### Perform Web Searches
+
+Use the `/briefops-search` command to perform web searches directly from Slack:
+
+```
+/briefops-search [search query]
+```
+Example: `/briefops-search latest trends in AI`
+
+This will return the top web search results for the provided query.
+Note: Ensure that the Google Custom Search API is enabled and configured as per the setup instructions.
+
+<img src="images/briefops-search.png" width=550px>
+
+### Perform Summarized Web Searches
+
+Use the `/briefops-search` command with the `--summarise` flag to perform web searches and produce a single summarised mini report across top 5 search results. The use of `--public` will make such search summarisation viable to everyone in the channel.
+
+```
+/briefops-search [search query] --summarise --public
 ```
 
-With a simple command, `briefops` extracts and summarizes key points from recent conversations, providing your team with a quick overview of decisions, updates, and key topics. briefops keeps your information safe, leveraging Google's robust cloud infrastructure, while ensuring your team never misses an important conversation.
+Example:
 
-Before
-![Before BriefOps](images/Slack-news-feed-channel.png "Before BriefOps")
+`/briefops-search latest trends in AI --summarise`
 
-After
-![After BriefOps](images/News-feed-Channel-Summarised.png "After BriefOps")
+This will fetch and summarize the content of the top 5 web search results for the provided query.
+
+<img src="images/summarise-search-results.png" width=550px>
 
 
-## Secure SDLC with GCP - You'd want to set this up on your own
+Notes:
+- Response Time: Summarizing content may take longer than a standard search.
+- Compliance: Ensure that fetching and summarizing content complies with the websites’ terms of service.
+- Content Limitations: Some pages may not allow content to be fetched or may have protections against scraping.
+  
+## Variables & Tunables
+
+### Model Tuning (Vertex AI)
+
+- Model Version: `gemini-1.5-flash-002` for summarization.
+- Location: `us-central1` for Google Cloud region.
+- Temperature: `0.3` for deterministic outputs.
+- Max Output Tokens: `1024` for concise summaries.
+- Top-P: `0.9` for cumulative probability in word selection.
+- Top-K: `40` for balanced variation in next-word prediction.
+
+### Slack Configuration
+
+- Tokens: Set SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET, and SLACK_APP_TOKEN for secure bot communication.
+
+### Free Tier Configuration
+
+- Daily Limit: FREE_TIER_DAILY_LIMIT=0 (no daily restrictions).
+- Max Days: FREE_TIER_MAX_DAYS=0 (no day range limit).
+
+These settings optimize performance, user experience, and access limits for both free and premium users.
+
+## Continuous Integration and Deployment (CI/CD) with Google Cloud Build
 
 When developing and deploying applications in Google Cloud, it’s essential to follow a secure Software Development Lifecycle (SDLC). For BriefOps, using Google Cloud Build allows for the automated building, scanning, and deploying of Docker images in a secure and controlled environment.
 
-Here’s an example Cloud Build configuration that ensures secure practices throughout the deployment process:
-
-See the example `cloudbuild.yaml` file, as this is configured in my repo, to ensure my fresh-baked changeset are pushed right out to cloudRun, for testing.
-
+### Example cloudbuild.yaml Configuration
 ```
 steps:
   # Step 1: Build the Docker image
@@ -252,51 +293,52 @@ steps:
       - '--set-secrets'
       - 'SLACK_SIGNING_SECRET=SLACK_SIGNING_SECRET:latest'
       - '--service-account'
-      - 'briefops-service-account@briefops.iam.gserviceaccount.com'  
+      - 'briefops-service-account@your-project-id.iam.gserviceaccount.com'
     id: 'Deploy to Cloud Run'
 
-# Logging options set to CLOUD_LOGGING_ONLY
 options:
   logging: CLOUD_LOGGING_ONLY
 
 substitutions:
   _REGION: us-central1
   _SERVICE: briefops
-
+  
 ```
 
-Benefits of your own independent CICD Setup
+### Benefits of the CI/CD Setup
+
 - Automated Build & Deploy: Ensures consistency in every release by automating the build and deployment steps.
 - Container Scanning: Integrating container scanning tools with Cloud Build helps detect vulnerabilities early in the SDLC process.
 - Secret Management: Sensitive information such as Slack Tokens is managed securely with Google Secret Manager, ensuring they are not exposed during builds or in source code.
 - IAM Policies: Cloud Build steps are executed using IAM service accounts with least privilege access, ensuring that only necessary permissions are granted.
 - Logging and Monitoring: Using Cloud Logging and Monitoring ensures that all actions within the build pipeline and the deployed application are tracked and auditable.
 
-(Use Cloud Logging to evaluate your own instance of this app as/when you add any more features)
+Benefits of the CI/CD Setup
+
+- Automated Build & Deploy: Ensures consistency in every release by automating the build and deployment steps.
+- Container Scanning: Integrating container scanning tools with Cloud Build helps detect vulnerabilities early in the SDLC process.
+- Secret Management: Sensitive information such as Slack Tokens is managed securely with Google Secret Manager, ensuring they are not exposed during builds or in source code.
+- IAM Policies: Cloud Build steps are executed using IAM service accounts with least privilege access, ensuring that only necessary permissions are granted.
+- Logging and Monitoring: Using Cloud Logging and Monitoring ensures that all actions within the build pipeline and the deployed application are tracked and auditable.
 
 ## Security and Privacy Considerations
 
 BriefOps is designed with privacy and security in mind:
+- Deployment Control: Deployed entirely within your own Google Cloud environment for full control.
+- Data Privacy: No data is shared with third-party services, and content is not used for model training.
+- Best Practices: Adheres to Google Cloud’s best practices for least privilege and secure access using IAM roles and Secret Manager.
 
-Deployed entirely within your own Google Cloud environment for full control.
-No data is shared with third-party services, and content is not used for model training.
-Adheres to Google Cloud's best practices for least privilege and secure access using IAM roles and Secret Manager.
-Required IAM Roles:
+## Required IAM Roles
 
 The service account will be configured with the following roles:
+- `roles/aiplatform.user`: Vertex AI access for summarization models.
+- `roles/dialogflow.admin`: Access to Dialogflow CX resources.
+- `roles/storage.admin`: Access to Cloud Storage for file uploads.
+- `roles/datastore.user`: Access to Firestore for data storage.
+- `roles/secretmanager.secretAccessor`: Access to secrets like Slack tokens stored in Secret Manager.
+- `roles/logging.logWriter`: Write logs to Cloud Logging for monitoring.
+- `roles/monitoring.viewer`: View monitoring metrics for the deployed service.
 
-```
-roles/aiplatform.user: Vertex AI access for summarisation models.
-roles/datastore.user: Access to Firestore for data storage.
-roles/secretmanager.secretAccessor: Access to secrets like Slack tokens stored in Secret Manager.
-roles/logging.logWriter: Write logs to Cloud Logging for monitoring.
-roles/monitoring.viewer: View monitoring metrics for the deployed service.
-```
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for details.
-
-
-### Key Updates:
-- Replaced placeholders for Slack tokens with `"replace-this-token-with-your-own..."` to make it clear that users need to provide their own Slack credentials.
-- Simplified instructions to ensure users know where to input their Slack app tokens.This is the public repository for BriefOps. It contains the necessary code and configuration for the deployment.

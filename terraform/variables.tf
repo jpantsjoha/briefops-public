@@ -1,8 +1,10 @@
 # variables.tf
 
+
 variable "project_id" {
   description = "Google Cloud Project ID"
   type        = string
+  default     = "briefops"
 }
 
 variable "region" {
@@ -11,10 +13,22 @@ variable "region" {
   default     = "us-central1"
 }
 
+variable "agent_display_name" {
+  description = "The display name of the Dialogflow CX agent"
+  type        = string
+  default     = "BriefOps Agent"
+}
+
 variable "service_account_name" {
   description = "Service account name"
   type        = string
   default     = "briefops-service-account"
+}
+
+variable "deletion_protection" {
+  description = "deletion protection"
+  type        = string
+  default     = "false"
 }
 
 variable "app_name" {
@@ -31,13 +45,13 @@ variable "container_image" {
 variable "memory" {
   description = "Memory allocated to Cloud Run service"
   type        = string
-  default     = "512Mi"
+  default     = "2Gi"
 }
 
 variable "max_instances" {
   description = "Maximum number of Cloud Run instances"
   type        = number
-  default     = 2
+  default     = 5
 }
 
 variable "create_firestore" {

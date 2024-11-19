@@ -2,7 +2,7 @@ const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
 const https = require('https');
 const { WebClient } = require('@slack/web-api');
 const { LOG_LEVEL } = require('./config');
-const db = require('./firebaseClient'); // Ensure this points to your Firestore initialization
+const db = require('./firebaseClient');
 
 // Function to fetch secret values from Secret Manager
 async function getSecret(secretName) {
@@ -32,35 +32,38 @@ async function validateSecrets() {
   ];
 
   for (const secret of secrets) {
-    console.log(`Validating secret: ${secret}`); // Debugging step to indicate the start of validation
-    const value = process.env[secret] || (await getSecret(secret.toLowerCase()));
+    console.log(`Validating secret: ${secret}`);
+    const value = process.env[secret] || (await getSecret(secret));
     if (!value) {
       console.error(`Missing or empty secret: ${secret}`);
       process.exit(1);
     }
     process.env[secret] = value; // Assign the value to the environment variable if fetched successfully
-    console.log(`Secret ${secret} is set.`); // Debugging to confirm the secret is set
+    console.log(`Secret ${secret} is set.`);
   }
 }
 
 // Function to test network access to Slack API
-async function testNetworkAccess() {
-  console.log('Testing outbound network access to Slack API...');
-  https.get('https://slack.com/api/api.test', (resp) => {
-    let data = '';
+function testNetworkAccess() {
+  return new Promise((resolve) => {
+    console.log('Testing outbound network access to Slack API...');
+    https
+      .get('https://slack.com/api/api.test', (resp) => {
+        let data = '';
 
-    // A chunk of data has been received.
-    resp.on('data', (chunk) => {
-      data += chunk;
-    });
+        resp.on('data', (chunk) => {
+          data += chunk;
+        });
 
-    // The whole response has been received.
-    resp.on('end', () => {
-      console.log('Network access to Slack API succeeded. Response:', data);
-    });
-
-  }).on("error", (err) => {
-    console.error("Network access to Slack API failed: " + err.message);
+        resp.on('end', () => {
+          console.log('Network access to Slack API succeeded. Response:', data);
+          resolve(true);
+        });
+      })
+      .on('error', (err) => {
+        console.error('Network access to Slack API failed:', err.message);
+        resolve(false);
+      });
   });
 }
 
@@ -83,13 +86,20 @@ function retrySocketConnection(socketModeClient, retryCount = 0) {
   const MAX_RETRIES = 5;
   const RETRY_INTERVAL = 5000; // 5 seconds
 
-  socketModeClient.on('close', (code, reason) => {
-    console.error(`Socket closed with code ${code}, reason: ${reason}`);
+  socketModeClient.on('disconnect', async (reason) => {
+    console.error(`Socket disconnected. Reason: ${reason}`);
     if (retryCount < MAX_RETRIES) {
       console.warn(`Attempting to reconnect Socket Mode client, attempt #${retryCount + 1}`);
-      setTimeout(() => {
-        retryCount++;
-        socketModeClient.connect();
+      retryCount++;
+
+      setTimeout(async () => {
+        try {
+          console.log('Reconnecting Socket Mode client...');
+          await socketModeClient.start(); // Use `.start()` instead of `.connect()`
+          console.log('Socket Mode client reconnected successfully.');
+        } catch (error) {
+          console.error('Error reconnecting Socket Mode client:', error.message);
+        }
       }, RETRY_INTERVAL);
     } else {
       console.error('Maximum retry attempts reached. Socket Mode client failed to reconnect.');
@@ -104,13 +114,11 @@ async function handleStatusCommand({ command, ack, respond }) {
     // Acknowledge the command
     await ack();
 
-    console.log(
-      `[INFO] Processing /briefops-status for user: ${command.user_name}`
-    );
+    console.log(`[INFO] Processing /briefops-status for user: ${command.user_name}`);
 
     // Fetch document ingestion stats from Firestore
     const documentsSnapshot = await db
-      .collection('ingestedFiles') // Corrected collection name
+      .collection('ingestedFiles') // Ensure the correct collection name
       .orderBy('createdAt') // Ensure documents are ordered by creation time
       .get();
 
@@ -119,7 +127,7 @@ async function handleStatusCommand({ command, ack, respond }) {
 
     if (documentCount > 0) {
       const lastDocData = documentsSnapshot.docs[documentCount - 1].data();
-      lastDocument = lastDocData.fileName || 'Unknown'; // Corrected field name
+      lastDocument = lastDocData.fileName || 'Unknown'; // Ensure correct field name
     }
 
     // Test Slack connectivity
@@ -147,9 +155,7 @@ async function handleStatusCommand({ command, ack, respond }) {
 
     console.log('[INFO] Status report sent successfully.');
   } catch (error) {
-    console.error(
-      `[ERROR] Error in /briefops-status handler: ${error.message}`
-    );
+    console.error(`[ERROR] Error in /briefops-status handler: ${error.message}`);
     await respond({
       text: `An error occurred while processing the status: ${error.message}`,
       response_type: 'ephemeral',
@@ -157,7 +163,14 @@ async function handleStatusCommand({ command, ack, respond }) {
   }
 }
 
+// Utility for handling critical errors
+function handleFatalError(error) {
+  console.error('Critical error occurred during initialization:', error.message);
+  process.exit(1);
+}
+
 module.exports = {
+  handleFatalError,
   validateSecrets,
   testNetworkAccess,
   testSlackApi,

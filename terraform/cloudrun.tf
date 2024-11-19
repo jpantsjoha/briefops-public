@@ -10,14 +10,14 @@ resource "google_cloud_run_v2_service" "briefops" {
       resources {
         limits = {
           memory = var.memory
-          cpu    = "2" # Increased CPU allocation to 2 for better performance during cold starts
+          cpu    = "1" # Increased CPU allocation to 2 for better performance during cold starts
         }
         startup_cpu_boost = true # Enables CPU boost during startup for quicker response
       }
 
       # Environment variables using secrets from Secret Manager
       env {
-        name = "GOOGLE_CLOUD_PROJECT"
+        name  = "GOOGLE_CLOUD_PROJECT"
         value = var.project_id
       }
 
@@ -57,7 +57,7 @@ resource "google_cloud_run_v2_service" "briefops" {
     scaling {
       min_instance_count = 1 # Ensure at least 2 instances are always available
       max_instance_count = var.max_instances
-      
+
     }
   }
 
